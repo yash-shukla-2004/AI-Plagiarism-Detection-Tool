@@ -91,6 +91,10 @@ def tokenize_using_ast(java_code):
     return tokens
 
 
+def inbuilt_ast(code):
+    tree = javalang.parse.parse(code)
+    return tree
+
 def abstract_identifiers(tokens):
     """
     Replaces user-defined identifiers with generic placeholders like var_1, var_2.
@@ -136,14 +140,17 @@ def preprocessing(code):
 
     tokens_lex = tokenize_using_lexical_analysis(code)
 
-    tokens_ast = tokenize_using_ast(code)
+    custom_ast = tokenize_using_ast(code)
+
+    inblt_ast = inbuilt_ast(code)
 
     
     print(f"tokens: {tokens}")
     print(f"abstracted tokens: {abstracted_tokens}")
-    print(f"tokens using ast : {tokens_ast}")
+    print(f"tokens using ast : {custom_ast}")
+    print(f"tokens using inbuilt ast : {inblt_ast}")
     print(f"tokens using lexical analysis: {tokens_lex}")
-    return {"tokens":tokens ,"abstracted tokens": abstracted_tokens, "tokens_lex":tokens_lex,"tokens_ast":tokens_ast, "code" : code}
+    return {"tokens":tokens ,"abstracted tokens": abstracted_tokens, "tokens_lex":tokens_lex,"custom_tokens_ast":custom_ast,"inbuilt_tokens_ast":inblt_ast, "code" : code}
 
 
 preprocessing(java_code)
