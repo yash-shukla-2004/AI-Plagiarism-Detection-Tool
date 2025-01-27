@@ -1,6 +1,7 @@
 import javalang
 import re
-
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
 
 java_code = """
 // This is a simple Java program
@@ -145,12 +146,14 @@ def preprocessing(code):
     inblt_ast = inbuilt_ast(code)
 
     
-    print(f"tokens: {tokens}")
-    print(f"abstracted tokens: {abstracted_tokens}")
-    print(f"tokens using ast : {custom_ast}")
-    print(f"tokens using inbuilt ast : {inblt_ast}")
-    print(f"tokens using lexical analysis: {tokens_lex}")
+    #print(f"tokens: {tokens}")
+    #print(f"abstracted tokens: {abstracted_tokens}")
+    #print(f"tokens using ast : {custom_ast}")
+    #print(f"tokens using inbuilt ast : {inblt_ast}")
+    #print(f"tokens using lexical analysis: {tokens_lex}")
     return {"tokens":tokens ,"abstracted tokens": abstracted_tokens, "tokens_lex":tokens_lex,"custom_tokens_ast":custom_ast,"inbuilt_tokens_ast":inblt_ast, "code" : code}
 
 
-preprocessing(java_code)
+#preprocessing(java_code)
+
+
