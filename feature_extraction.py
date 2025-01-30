@@ -3,6 +3,7 @@ from preprocessing import preprocessing,java_code, inbuilt_ast
 import re
 import javalang
 from collections import defaultdict
+from sklearn.cluster import KMeans
 
 
 def lexical_features(tokens):
@@ -306,3 +307,10 @@ def preprocessing_with_features(code):
 
 
 preprocessing_with_features(java_code)
+
+def cluster_features(features_vectors,num_clusters = 5):
+    kmeans = KMeans(n_clusters=num_clusters,random_state=42)
+    labels = kmeans.fit_predict(features_vectors)
+
+    return labels,kmeans
+
