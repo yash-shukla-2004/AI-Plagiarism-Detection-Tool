@@ -264,9 +264,6 @@ def semantic_features(tokens, ast):
 
 
 def feature_extraction(preprocessed_data):
-    """
-    Extracts lexical, syntactic, and semantic features from the preprocessed data.
-    """
     tokens = preprocessed_data["tokens"]
     ast_tree = preprocessed_data["inbuilt_tokens_ast"]
     ast = inbuilt_ast(java_code)
@@ -278,13 +275,10 @@ def feature_extraction(preprocessed_data):
     ast = ast_features(ast)
 
     # Semantic embeddings
-    semantic = semantic_features(tokens,ast)
+    semantic = semantic_features(tokens, ast)
 
-    return {
-        "lexical": lexical,
-        "ast": ast,
-        "semantic": semantic
-    }    
+
+    return lexical,ast,semantic
 
 
 
@@ -296,12 +290,7 @@ def preprocessing_with_features(code):
     preprocessed = preprocessing(code)
     features = feature_extraction(preprocessed)
 
-    print("Lexical Features:")
-    print(features["lexical"])
-    print("\nAST Features:")
-    print(features["ast"])
-    print("\nSemantic Features (embeddings shape):")
-    print(features["semantic"])
+    print(features)
 
     return features
 
