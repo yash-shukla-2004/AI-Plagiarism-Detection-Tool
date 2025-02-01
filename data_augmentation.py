@@ -5,13 +5,21 @@ import javalang
 from typing import List
 
 def rename_variables(java_code: str) -> str:
-    tree = javalang.parse.parse(java_code)
+    java_keywords = {"abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while"}
+    standard_methods = {"System", "out", "println", "print", "err"}
+    
+    try:
+        tree = javalang.parse.parse(java_code)
+    except javalang.parser.JavaSyntaxError as e:
+        print(f"Syntax error in Java code, skipping renaming: {e}")
+        return java_code
+    
     var_map = {}
     counter = 0
     
     for path, node in tree:
         if isinstance(node, javalang.tree.VariableDeclarator):
-            if node.name not in var_map:
+            if node.name not in var_map and node.name not in java_keywords and node.name not in standard_methods:
                 new_name = f'var{counter}'
                 var_map[node.name] = new_name
                 counter += 1
@@ -22,10 +30,38 @@ def rename_variables(java_code: str) -> str:
     return java_code
 
 def reorder_statements(java_code: str) -> str:
-    statements = java_code.split(";")
-    if len(statements) > 2:
-        random.shuffle(statements[:-1])  # Avoid shuffling the last empty statement
-    return ";".join(statements)
+    import_section = []
+    code_section = []
+    method_body = []
+    inside_method = False
+
+    lines = java_code.split("\n")
+    
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped.startswith("import "):
+            import_section.append(line)
+        elif re.match(r"^(public|private|protected|static|\s)*\s*(class|interface|enum|void|\w+\s+\w+)\s*\(", stripped):
+            # Preserve method/class headers
+            code_section.append(line)
+            inside_method = True
+        elif inside_method and stripped == "}":
+            # Closing method/class - append stored method body
+            random.shuffle(method_body)
+            code_section.extend(method_body)
+            code_section.append(line)
+            method_body = []
+            inside_method = False
+        elif inside_method:
+            # Store method body for shuffling
+            method_body.append(line)
+        else:
+            # Outside method, directly add
+            code_section.append(line)
+
+    # Join everything back together
+    return "\n".join(import_section + code_section)
 
 def change_whitespace(java_code: str) -> str:
     java_code = re.sub(r'\s+', ' ', java_code)  # Reduce multiple spaces to single
@@ -36,7 +72,10 @@ def augment_java_code(java_code: str) -> str:
     transformations = [rename_variables, reorder_statements, change_whitespace]
     random.shuffle(transformations)
     for transform in transformations:
-        java_code = transform(java_code)
+        try:
+            java_code = transform(java_code)
+        except Exception as e:
+            print(f"Error applying {transform.__name__}: {e}")
     return java_code
 
 def augment_dataset(input_folder: str, output_folder: str, num_variants: int = 3):
@@ -54,9 +93,10 @@ def augment_dataset(input_folder: str, output_folder: str, num_variants: int = 3
                 
                 for i in range(num_variants):
                     augmented_code = augment_java_code(original_code)
-                    new_filename = f"{os.path.splitext(filename)[0]}_aug{i}.java"
-                    with open(os.path.join(output_folder, new_filename), "w", encoding="utf-8") as f:
-                        f.write(augmented_code)
+                    if augmented_code.strip():  # Ensure the output is valid
+                        new_filename = f"{os.path.splitext(filename)[0]}_aug{i}.java"
+                        with open(os.path.join(output_folder, new_filename), "w", encoding="utf-8") as f:
+                            f.write(augmented_code)
                 
                 processed_count += 1
             except Exception as e:

@@ -5,4 +5,4 @@ def count_files_in_folder(directory):
         print(f'Folder: {foldername}, Files: {len(filenames)}')
 
 # Replace 'your_directory_path' with the path of your folder
-count_files_in_folder('./dataset')
+count_files_in_folder('./testing')
