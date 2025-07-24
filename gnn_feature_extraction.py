@@ -82,12 +82,25 @@ def preprocessing_with_features(java_codes):
 
     for i, java_code in enumerate(java_codes):
         features, edges = extract_features(java_code)
-        
-        # Convert features to tensor (1 node = 1 feature vector)
-        node_features = torch.tensor(features, dtype=torch.float).unsqueeze(0)
-        
-        # Convert edge indices to tensor
-        edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
+
+        # Debugging: Check if features and edges are returned correctly
+        #print(f"Code {i}: Features = {features}, Edges = {edges}")
+
+        # Ensure features are not empty or malformed
+        features = [f if isinstance(f, list) and len(f) > 0 else [0, 0] for f in features]  # Default feature [0, 0] if empty
+
+        if len(features) == 0 or all(len(f) == 0 for f in features):
+            print(f"Warning: No valid features for code {i}. Using default feature values.")
+            node_features = torch.zeros(1, 2)  # Default feature vector with 2 values (adjust as necessary)
+        else:
+            node_features = torch.tensor(features, dtype=torch.float).unsqueeze(0)
+
+        # Handle edges similarly, ensuring it's non-empty and valid
+        if not edges or len(edges) == 0:
+            print(f"Warning: No valid edges for code {i}. Using default edge index values.")
+            edge_index = torch.zeros(2, 0, dtype=torch.long)  # Default empty edge index
+        else:
+            edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
 
         # Add batch index (for multiple graphs, each graph gets a different batch index)
         batch_index = torch.tensor([i] * node_features.size(1), dtype=torch.long)  # One batch index per node
@@ -97,18 +110,11 @@ def preprocessing_with_features(java_codes):
         all_batch_indices.append(batch_index)
 
     # Combine all graphs into one batch (if needed)
-    x = torch.cat(all_features, dim=1)
-    edge_index = torch.cat(all_edge_indices, dim=1)
-    batch_index = torch.cat(all_batch_indices, dim=0)
+    x = torch.cat(all_features, dim=1)  # Concatenate all feature tensors along the node dimension
+    edge_index = torch.cat(all_edge_indices, dim=1)  # Concatenate all edge_index tensors along the edge dimension
+    batch_index = torch.cat(all_batch_indices, dim=0)  # Concatenate batch indices
 
-    # Final output
-    #print("Final Output:")
-    #print("\nx (Node Features):")
-    #print(x)
-    #print("\nEdge Index:")
-    #print(edge_index)
-    #print("\nBatch Index:")
-    #print(batch_index)
+    return x, edge_index, batch_index
 
 
 preprocessing_with_features(java_codes)
